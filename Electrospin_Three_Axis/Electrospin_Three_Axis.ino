@@ -139,7 +139,7 @@ void loop() {
     receive_command();
   }
 
-  if(SPINNING){ // if system started move the y axis between start and end position perpetually
+  if(SPINNING && !y_move){ // if system started move the y axis between start and end position perpetually
 
       if(!backAndForth){
         move_to(long(max_pos));
@@ -387,10 +387,11 @@ void Y_axis_step(){
   }
 
 
-    if(y_axis_position>=y_axis_target_pos){
+    if(y_axis_position>=y_axis_target_pos && y_move){
       disable_y_axis_motion();
       Serial.println("Y AXIS POSITION AFTER MOTION:  ");
       Serial.println(y_axis_position);
+      y_move=false;
 
     }
 
@@ -418,7 +419,7 @@ Serial.print("Moving to position:   ");
 Serial.println(y_pos_in_steps);
   
   y_axis_target_pos=y_pos_in_steps;
-  //y_move=true;
+  y_move=true;
   
   if(y_pos_in_steps>y_axis_position){
     update_y_axis(y_step_period, 0);//set Y_axis moving towards limit switch
