@@ -31,8 +31,8 @@ Enclosure heater
 /*==============================================================
 Definitions
 ==============================================================*/
-#define Y_STEPS_PER_MM 320
-#define X_STEPS_PER_MM 8000
+#define Y_STEPS_PER_MM 320 //Y axis Calibration factor
+#define X_STEPS_PER_MM 8000 //x axis calibration factor
 //
 #define EG_SPINDLE 1.0 
 #define EG_Y 1.0
@@ -139,14 +139,13 @@ void loop() {
     receive_command();
   }
 
-  if(SPINNING && !y_move){ // if system started move the y axis between start and end position perpetually
-
+  if(SPINNING){ // if system started move the y axis between start and end position perpetually
 
       if(!backAndForth){
         move_to(long(max_pos));
       }
       else{
-        
+    
         move_to(long(min_pos));
 
       }
@@ -198,26 +197,6 @@ void receive_command(){
     if (command.substring(0,command.indexOf(":")) == "XP") { //YS = Y_START (start position of y axis)
       x_pos = command.substring(command.indexOf(":") + 1).toFloat();
       target_x_pos=long(x_pos)*X_STEPS_PER_MM;
-     /* if(target_x_pos>(180*X_STEPS_PER_MM)){
-          target_x_pos=180*X_STEPS_PER_MM;
-      }*/
-     /* if(SPINNING){
-        target_x_pos=float(previous_x_pos)-target_x_pos;
-        
-        if(x_pos>0){
-          digitalWrite(X_DIR, HIGH);//direction Toward limit switch
-            move_to_x(target_x_pos);
-            previous_x_pos=target_x_pos;
-        }
-        
-        if(target_x_pos<0){
-            digitalWrite(X_DIR, LOW);//direction away from limit switch
-            target_x_pos=long(target_x_pos*(-1));
-            move_to_x(target_x_pos);
-            previous_x_pos=target_x_pos;
-        }
-
-      }*/
       
       Serial.print("X Position:   ");
       Serial.println(x_pos);
@@ -408,11 +387,11 @@ void Y_axis_step(){
   }
 
 
-    if(y_axis_position==y_axis_target_pos && y_move){
+    if(y_axis_position>=y_axis_target_pos){
       disable_y_axis_motion();
       Serial.println("Y AXIS POSITION AFTER MOTION:  ");
       Serial.println(y_axis_position);
-      y_move=false;
+
     }
 
 return;  
@@ -439,14 +418,15 @@ Serial.print("Moving to position:   ");
 Serial.println(y_pos_in_steps);
   
   y_axis_target_pos=y_pos_in_steps;
-  y_move=true;
+  //y_move=true;
+  
   if(y_pos_in_steps>y_axis_position){
-    update_y_axis(y_step_period, 0);
-
+    update_y_axis(y_step_period, 0);//set Y_axis moving towards limit switch
+    
     backAndForth=true; //axis moving away from limit switch
   }
   else{
-    update_y_axis(y_step_period, 1);
+    update_y_axis(y_step_period, 1);//set y_axis moving away from limit switch
 
     backAndForth=false; //axis moving towards limit switch
   }
